@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear LocalStorage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clear LocalStorage for Todo App</h1>
+    <p>Click the button below to clear all stored authentication tokens and data.</p>
+    <button onclick="clearStorage()">Clear LocalStorage</button>
+    <div id="message"></div>
+
+    <script>
+        function clearStorage() {
+            localStorage.clear();
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message success';
+            messageDiv.textContent = 'LocalStorage cleared successfully! Please reload the app.';
+            setTimeout(() => {
+                window.location.href = 'http://localhost:3000';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

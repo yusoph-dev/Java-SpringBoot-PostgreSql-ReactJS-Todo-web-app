@@ -12,6 +12,15 @@ import java.util.List;
 @Repository
 public interface TodoRepository extends JpaRepository<Todo, Long> {
     
+    // Find all todos for a specific user
+    List<Todo> findByUserId(Long userId);
+    
+    // Find todos by completion status for a specific user
+    List<Todo> findByUserIdAndCompleted(Long userId, Boolean completed);
+    
+    // Find todos by priority for a specific user
+    List<Todo> findByUserIdAndPriority(Long userId, Todo.Priority priority);
+    
     // Find todos by completion status
     List<Todo> findByCompleted(Boolean completed);
     
@@ -42,6 +51,12 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     // Count todos by priority
     long countByPriority(Todo.Priority priority);
     
+    // Count todos by priority for a specific user
+    long countByUserIdAndPriority(Long userId, Todo.Priority priority);
+    
+    // Count todos by completion status for a specific user
+    long countByUserIdAndCompleted(Long userId, Boolean completed);
+    
     // Find all todos ordered by priority and due date
     @Query("SELECT t FROM Todo t ORDER BY " +
            "CASE WHEN t.priority = 'HIGH' THEN 1 " +
@@ -49,4 +64,12 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
            "     WHEN t.priority = 'LOW' THEN 3 END, " +
            "t.dueDate ASC NULLS LAST, t.createdAt ASC")
     List<Todo> findAllOrderedByPriorityAndDueDate();
+    
+    // Find all todos for a user ordered by priority and due date
+    @Query("SELECT t FROM Todo t WHERE t.user.id = :userId ORDER BY " +
+           "CASE WHEN t.priority = 'HIGH' THEN 1 " +
+           "     WHEN t.priority = 'MEDIUM' THEN 2 " +
+           "     WHEN t.priority = 'LOW' THEN 3 END, " +
+           "t.dueDate ASC NULLS LAST, t.createdAt ASC")
+    List<Todo> findAllByUserIdOrderedByPriorityAndDueDate(@Param("userId") Long userId);
 }

@@ -51,6 +51,10 @@ public class Todo {
     @Column(name = "due_date")
     private LocalDateTime dueDate;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
     public enum Priority {
         LOW, MEDIUM, HIGH
     }
