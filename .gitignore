@@ -1,0 +1,145 @@
+# Environment variables
+.env
+.env.local
+.env.prod
+.env.production
+backend/.env
+backend/.env.local
+frontend/.env
+frontend/.env.local
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# IDE - VSCode
+.vscode/
+*.code-workspace
+
+# IDE - Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+bin/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Backend - Maven
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/pom.xml.tag
+backend/pom.xml.releaseBackup
+backend/pom.xml.versionsBackup
+backend/pom.xml.next
+backend/release.properties
+backend/dependency-reduced-pom.xml
+backend/buildNumber.properties
+backend/.mvn/timing.properties
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Backend - Gradle (if used)
+backend/.gradle/
+backend/build/
+backend/!gradle/wrapper/gradle-wrapper.jar
+backend/!**/src/main/**/build/
+backend/!**/src/test/**/build/
+
+# Backend - Spring Boot
+backend/HELP.md
+backend/.springBeans
+backend/spring-boot-devtools.properties
+
+# Frontend - Node
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+frontend/.parcel-cache/
+
+# Frontend - Dependencies
+frontend/package-lock.json
+frontend/yarn.lock
+frontend/pnpm-lock.yaml
+
+# Frontend - Build outputs
+frontend/.next/
+frontend/out/
+frontend/.nuxt/
+frontend/.output/
+frontend/.vercel/
+
+# Frontend - Testing
+frontend/coverage/
+frontend/.nyc_output/
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Database
+database/data/
+*.sql.gz
+*.dump
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Compiled files
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# Secrets and credentials
+secrets/
+credentials/
+*.pem
+*.key
+*.cert
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archives
+*.zip
+*.tar.gz
+*.rar

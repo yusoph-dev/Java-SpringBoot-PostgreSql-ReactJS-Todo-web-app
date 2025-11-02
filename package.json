@@ -1,0 +1,13 @@
+{
+  "name": "springboot-todo-app",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend && ./mvnw spring-boot:run",
+    "frontend": "cd frontend && npm start",
+    "build": "cd backend && ./mvnw clean package && cd ../frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
