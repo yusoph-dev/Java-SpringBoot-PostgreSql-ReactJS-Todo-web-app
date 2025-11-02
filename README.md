@@ -6,7 +6,7 @@ A full-stack todo application built with Spring Boot, React, and PostgreSQL, ful
 
 ```bash
 # Clone the repository
-git clone <your-repo>
+git clone https://github.com/yusoph-dev/Java-SpringBoot-PostgreSql-ReactJS-Todo-web-app.git
 cd springboot-todo
 
 # Build and run with Docker
@@ -20,12 +20,21 @@ chmod +x docker.sh
 
 ## Features
 
+- **User Authentication** - Secure JWT-based authentication system
+  - User registration and login
+  - Profile management (update email, name, password)
+  - Account deletion with confirmation
+  - Protected routes and API endpoints
+- **Role-Based Access Control** - Admin and user roles
+  - Admin users can view and manage all todos
+  - Regular users can only access their own todos
+  - Role-based permissions enforced on backend and frontend
 - **Full CRUD Operations** - Create, read, update, delete todos
 - **Priority Management** - Low, Medium, High priority levels
 - **Due Date Support** - Optional due dates for todos
 - **Status Tracking** - Mark todos as complete/incomplete
 - **Statistics Dashboard** - View completion rates and priority distribution
-- **Responsive Design** - Mobile-friendly UI with Material-UI
+- **Responsive Design** - Mobile-friendly UI with Material-UI v7
 - **Real-time Updates** - Instant UI updates after operations
 - **Dockerized Deployment** - Complete containerization for all services
 - **Production Ready** - Separate dev/prod configurations
@@ -42,19 +51,24 @@ chmod +x docker.sh
 
 ### Backend (Spring Boot)
 - **Framework**: Spring Boot 3.4.11 with Java 21
+- **Security**: Spring Security with JWT authentication (HS384, 24h expiration)
 - **Database**: PostgreSQL with Spring Data JPA
-- **Features**: REST API, CORS support, validation, exception handling
+- **Features**: REST API, CORS support, validation, exception handling, role-based access control
+- **Password Encryption**: BCrypt with strength 10
 - **Build Tool**: Maven with wrapper
 
 ### Frontend (React)
 - **Framework**: React 19 with TypeScript
-- **UI Library**: Material-UI v7 + Bootstrap 4
+- **UI Library**: Material-UI v7
+- **Routing**: React Router v7.1.0 with protected routes
 - **Build Tool**: Vite
-- **Features**: Responsive design, form validation, real-time updates
+- **Features**: Responsive design, form validation, real-time updates, authentication context, JWT token management
 
 ### Database (PostgreSQL)
 - **Version**: PostgreSQL 16
-- **Features**: ACID compliance, JSON support, full-text search ready
+- **Schema**: Users table with role enum (USER, ADMIN), Todos table with user ownership
+- **Features**: ACID compliance, foreign key constraints, cascade delete, JSON support, full-text search ready
+- **Default Users**: Admin user (username: `admin`, password: `password123`)
 
 ## Docker Deployment
 
@@ -164,24 +178,120 @@ psql -U postgres
 CREATE DATABASE todoapp;
 CREATE USER todouser WITH PASSWORD 'todopass';
 GRANT ALL PRIVILEGES ON DATABASE todoapp TO todouser;
+
+-- Tables are automatically created by JPA
+-- Default admin user is created on startup:
+--   Username: admin
+--   Password: password123
+--   Role: ADMIN
 ```
+
+### Default Credentials
+
+**Admin User:**
+- Username: `admin`
+- Password: `password123`
+- Role: ADMIN (can view and manage all todos)
+
+**Test User:**
+- You can register your own user account through the registration page
+- New users have USER role by default (can only view/manage their own todos)
+
+## User Roles & Permissions
+
+### Admin Role
+- View all todos from all users
+- Access to all statistics (total counts across all users)
+- Can manage their own profile
+- Full CRUD operations on todos
+
+### User Role
+- View only their own todos
+- Access to their own statistics
+- Can manage their own profile
+- Full CRUD operations on their own todos
+- Cannot view or access other users' todos
+
+### Role Assignment
+- Default role for new registrations: `USER`
+- Admin role must be assigned manually in the database
+- Roles are stored as ENUM type in PostgreSQL (USER, ADMIN)
+
+## Docker Deployment
 
 ## API Endpoints
 
-### Todo Management
+### Authentication
 
 ```bash
-# Get all todos
+# Register new user
+POST /api/auth/register
+Content-Type: application/json
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "password123",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+# Login
+POST /api/auth/login
+Content-Type: application/json
+{
+  "username": "johndoe",
+  "password": "password123"
+}
+# Returns: { "token": "jwt_token", "user": {...} }
+
+# Get current user profile
+GET /api/auth/me
+Authorization: Bearer {token}
+
+# Update user profile
+PUT /api/auth/me
+Authorization: Bearer {token}
+Content-Type: application/json
+{
+  "email": "newemail@example.com",
+  "firstName": "John",
+  "lastName": "Smith"
+}
+
+# Change password
+PUT /api/auth/me
+Authorization: Bearer {token}
+Content-Type: application/json
+{
+  "currentPassword": "oldpassword",
+  "newPassword": "newpassword123"
+}
+
+# Delete account
+DELETE /api/auth/me
+Authorization: Bearer {token}
+```
+
+### Todo Management
+
+**Note**: All todo endpoints require authentication. Include the JWT token in the Authorization header.
+
+```bash
+# Get all todos (users see their own, admins see all)
 GET /api/todos
+Authorization: Bearer {token}
 
 # Get todos with priority ordering
 GET /api/todos?orderByPriority=true
+Authorization: Bearer {token}
 
 # Get todo by ID
 GET /api/todos/{id}
+Authorization: Bearer {token}
 
 # Create new todo
 POST /api/todos
+Authorization: Bearer {token}
 Content-Type: application/json
 {
   "title": "Learn Docker",
@@ -192,6 +302,7 @@ Content-Type: application/json
 
 # Update todo
 PUT /api/todos/{id}
+Authorization: Bearer {token}
 Content-Type: application/json
 {
   "title": "Updated title",
@@ -202,15 +313,33 @@ Content-Type: application/json
 
 # Toggle todo completion
 PATCH /api/todos/{id}/toggle
+Authorization: Bearer {token}
 
 # Delete todo
 DELETE /api/todos/{id}
+Authorization: Bearer {token}
 
-# Get statistics
+# Get statistics (user's stats or all stats for admin)
 GET /api/todos/stats
+Authorization: Bearer {token}
 ```
 
 ### Response Examples
+
+**Authentication Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzM4NCJ9...",
+  "user": {
+    "id": 1,
+    "username": "johndoe",
+    "email": "john@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "USER"
+  }
+}
+```
 
 **Todo Object:**
 ```json
@@ -240,20 +369,30 @@ GET /api/todos/stats
 
 ## Frontend Features
 
+### Pages
+- **Login** - User authentication with error handling
+- **Register** - New user registration with validation
+- **Todos** - Main todo management page with CRUD operations
+- **Profile** - User profile management and account settings
+
 ### Components
+- **AuthContext** - Global authentication state management
+- **ProtectedRoute** - Route guard for authenticated pages
 - **TodoCard** - Individual todo item with actions
 - **TodoForm** - Create/edit todo dialog
 - **TodoStats** - Statistics dashboard
-- **App** - Main application layout
+- **Navbar** - Navigation with user menu and logout
 
 ### UI Features
-- Material-UI components for consistent design
-- Bootstrap 4 for responsive grid system
+- Material-UI v7 components for consistent design
 - Mobile-first responsive design
 - Form validation and error handling
 - Loading states and user feedback
 - Priority color coding
 - Due date visualization
+- JWT token management with axios interceptors
+- Automatic token refresh handling
+- Protected routes with redirect to login
 
 ## Configuration
 
@@ -304,11 +443,30 @@ cd backend
 
 ### API Testing
 ```bash
-# Test API endpoints
-curl -X GET http://localhost:8080/api/todos/stats
+# Login to get JWT token
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password123"}' | jq -r '.token')
+
+# Test authenticated endpoints
+curl -X GET http://localhost:8080/api/todos/stats \
+  -H "Authorization: Bearer $TOKEN"
+
 curl -X POST http://localhost:8080/api/todos \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Test Todo","priority":"HIGH"}'
+
+# Test user registration
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username":"testuser",
+    "email":"test@example.com",
+    "password":"password123",
+    "firstName":"Test",
+    "lastName":"User"
+  }'
 ```
 
 ## Monitoring
@@ -356,35 +514,78 @@ docker-compose logs -f database
 
 ## Security
 
-- Non-root user execution in containers
-- Environment-based configuration
-- Input validation and sanitization
-- CORS protection
-- SQL injection prevention via JPA
-- Secure database connections
+- **Authentication**: JWT-based authentication with HS384 algorithm
+- **Password Security**: BCrypt hashing with strength 10
+- **Token Management**: 24-hour token expiration, stored in localStorage
+- **Authorization**: Role-based access control (USER, ADMIN)
+- **Protected Routes**: Frontend route guards for authenticated pages
+- **Protected Endpoints**: Backend Spring Security filters for API endpoints
+- **CORS Protection**: Configured allowed origins
+- **Input Validation**: Request validation with Bean Validation
+- **SQL Injection Prevention**: JPA/Hibernate parameterized queries
+- **Container Security**: Non-root user execution in Docker
+- **Environment Configuration**: Sensitive data in environment variables
+- **Cascade Delete**: User deletion automatically removes associated todos
 
 ## Project Structure
 
 ```
 springboot-todo/
-├── backend/                 # Spring Boot application
-│   ├── src/main/java/      # Java source code
-│   ├── src/main/resources/ # Configuration files
-│   ├── Dockerfile          # Backend container
-│   └── pom.xml            # Maven dependencies
-├── frontend/               # React application
-│   ├── src/               # React source code
-│   ├── public/            # Static assets
-│   ├── Dockerfile         # Frontend container
-│   └── package.json       # NPM dependencies
-├── database/              # Database scripts
-│   └── init-scripts/      # Initialization SQL
-├── docker-compose.yml     # Development environment
-├── docker-compose.prod.yml # Production environment
-├── docker.sh              # Management script
-├── .env                   # Development environment
-├── .env.prod              # Production environment
-└── README.md              # This file
+├── backend/                      # Spring Boot application
+│   ├── src/main/java/com/yusoph/todo/
+│   │   ├── controller/          # REST controllers
+│   │   │   ├── TodoController.java
+│   │   │   └── AuthController.java
+│   │   ├── service/             # Business logic
+│   │   │   ├── TodoService.java
+│   │   │   ├── AuthService.java
+│   │   │   └── UserService.java
+│   │   ├── repository/          # Data access
+│   │   │   ├── TodoRepository.java
+│   │   │   └── UserRepository.java
+│   │   ├── entity/              # JPA entities
+│   │   │   ├── Todo.java
+│   │   │   └── User.java
+│   │   ├── dto/                 # Data transfer objects
+│   │   ├── config/              # Security & JWT config
+│   │   │   ├── SecurityConfig.java
+│   │   │   ├── JwtService.java
+│   │   │   └── JwtAuthFilter.java
+│   │   └── exception/           # Exception handling
+│   ├── src/main/resources/
+│   │   └── application.yaml     # Application config
+│   ├── Dockerfile               # Backend container
+│   └── pom.xml                  # Maven dependencies
+├── frontend/                     # React application
+│   ├── src/
+│   │   ├── pages/               # Page components
+│   │   │   ├── Login.tsx
+│   │   │   ├── Register.tsx
+│   │   │   ├── TodosPage.tsx
+│   │   │   └── Profile.tsx
+│   │   ├── contexts/            # React contexts
+│   │   │   └── AuthContext.tsx
+│   │   ├── components/          # Reusable components
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   ├── TodoCard.tsx
+│   │   │   └── TodoForm.tsx
+│   │   ├── api/                 # API client
+│   │   │   └── todoApi.ts
+│   │   ├── App.tsx              # Root component with routing
+│   │   └── main.tsx             # Entry point
+│   ├── public/                  # Static assets
+│   ├── Dockerfile               # Frontend container
+│   ├── package.json             # NPM dependencies
+│   └── .env                     # Frontend environment
+├── database/                     # Database scripts
+│   └── init-scripts/
+│       └── 01-init.sql          # Schema & default users
+├── docker-compose.yml           # Development environment
+├── docker-compose.prod.yml      # Production environment
+├── docker.sh                    # Management script
+├── .env                         # Development environment
+├── .env.prod                    # Production environment
+└── README.md                    # This file
 ```
 
 ## Contributing
@@ -410,13 +611,20 @@ For questions or support:
 
 ## Roadmap
 
-- [ ] User authentication and authorization
+- [x] User authentication and authorization
+- [x] Role-based access control (Admin/User)
+- [x] User profile management
+- [x] JWT token authentication
 - [ ] Todo categories and tags  
 - [ ] File attachments
 - [ ] Reminders and notifications
+- [ ] Email verification
+- [ ] Password reset functionality
 - [ ] API rate limiting
 - [ ] Advanced search and filtering
+- [ ] Todo sharing between users
 - [ ] Data export/import
 - [ ] Mobile app (React Native)
-- [ ] Real-time collaboration
+- [ ] Real-time collaboration with WebSocket
 - [ ] Performance monitoring dashboard
+- [ ] OAuth2 social login (Google, GitHub)
